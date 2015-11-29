@@ -1,2 +1,2 @@
 # HangmanCloud
-Repository for CS 395 Cloud Project
+Repository for CS 495 Cloud Project
