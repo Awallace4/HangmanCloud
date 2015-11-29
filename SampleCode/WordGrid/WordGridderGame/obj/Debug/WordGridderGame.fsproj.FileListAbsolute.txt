@@ -1,0 +1,13 @@
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\WordGridderGame.XML
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\WordGridderGame.dll
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\WordGridderGame.pdb
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\FSharp.Core.dll
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\FSharp.Core.xml
+C:\myfiles\WordGridder1\WordGridderGame\obj\Debug\WordGridderGame.dll
+C:\myfiles\WordGridder1\WordGridderGame\obj\Debug\WordGridderGame.pdb
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\Microsoft.WindowsAzure.StorageClient.dll
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\Microsoft.WindowsAzure.StorageClient.xml
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\FsAzureHelper.dll
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\FsAzureHelper.pdb
+C:\myfiles\WordGridder1\WordGridderGame\bin\Debug\FsAzureHelper.xml
+C:\myfiles\WordGridder1\WordGridderGame\obj\Debug\WordGridderGame.fsprojResolveAssemblyReference.cache

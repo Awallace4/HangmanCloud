@@ -1,0 +1,9 @@
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\FsAzureHelper.XML
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\FsAzureHelper.dll
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\FsAzureHelper.pdb
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\FSharp.Core.dll
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\Microsoft.WindowsAzure.StorageClient.dll
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\Microsoft.WindowsAzure.StorageClient.xml
+C:\myfiles\WordGrid\FsAzureHelper\bin\Release\FSharp.Core.xml
+C:\myfiles\WordGrid\FsAzureHelper\obj\Release\FsAzureHelper.dll
+C:\myfiles\WordGrid\FsAzureHelper\obj\Release\FsAzureHelper.pdb

@@ -1,0 +1,254 @@
+﻿@model MvcWebRole1.Models.GameModel
+
+@using MvcWebRole1.Models
+@using WordGridGame
+
+@{
+    ViewBag.Title = "Board";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_LayoutBoard.cshtml";
+}
+<script src="@Url.Content("~/Scripts/WordGridScript.js")" type="text/javascript"></script>
+
+<!-- The game board consists of a series of rows and a series of cells in the rows.
+    Each cell is either occupied or unoccupied and if occupied contains a tile.
+     -->
+<style>
+    h2 {
+        font-family: 'Bookman Old Style';
+    }
+    p {
+        font-family: 'Bookman Old Style';
+    }
+    h3 {
+        font-family: 'Bookman Old Style';
+    }
+    table.board {
+        border: outset #d3cdbb;
+        border-collapse: separate;
+        border-spacing: 0px 0px;
+        padding: 1px 1px 1px 1px;
+    }
+    table.rack {
+        padding: 2px;
+        border-collapse: separate;
+        min-width: 350px;
+    }
+    td.cell {
+        margin: 2px 2px 2px 2px;
+        padding: 1px 1px 1px 1px;
+        border: inset #f6eed8;
+    }
+    td.rackCell {
+        min-width: 350px;
+        min-height: 55px;
+    }
+    img.spaceimage {
+        margin: 0px 0px 0px 0px;
+        padding: 1px 1px 1px 1px;
+    }
+    img.playedTile {
+        border: 1px dotted black;
+        margin: 0px 0px 0px 0px;
+    }
+    img.tileOnBoard {
+        margin: 0px 0px 0px 0px;
+        padding: 1px 1px 1px 1px;
+    }
+    div.boardSpace {
+        height: 30px;
+    }
+    div.rackSpace {
+        border: 1px solid black;
+        margin: 0px;
+        padding: 0px;
+        min-height: 32px;
+    }
+    input {
+        font-family: 'Bookman Old Style';
+        background-color: azure;
+    }
+
+</style>
+<!-- <form name="wordgrid" action="~/Board/Move" method="post" onsubmit="return capturePlayDetails(event)">-->
+@using (@Html.BeginForm("Move", null, FormMethod.Post, new { name = "wordgrid", onsubmit = "return capturePlayDetails(event)" }))
+{
+    @Html.AntiForgeryToken()
+    <h2>WordGrid</h2>
+    <p id="userMessage">@Model.UserMessage</p>
+<table id="board" class="board">
+@foreach (BoardRow row in Model.Rows)
+{
+    <tr class="row">
+    @{
+    foreach (BoardCell cell in row.Cells)
+    {
+            if (cell.IsEmpty)
+            {
+               <td class="cell"> <div class="boardSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)" id="@cell.CellID" onclick="OnClick">
+                   <img id="img@(cell.CellID)" class="@cell.ClassName" alt="@((int)cell.Space)" src="@cell.ImagePath" width="24" /></div>
+               </td>
+            }
+            else
+            {           
+               <td class="cell"> <div class="boardSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)" id="@cell.CellID" onclick="OnClick">
+                  <img id="img@(cell.CellID)" class="@cell.ClassName" alt="@cell.Letter@cell.PointValue" src="@cell.ImagePath" width="24" /></div>
+               </td>
+            }
+    }   
+    }
+    </tr>
+}
+</table>
+
+
+    <input name="row" id="row" type="hidden" value="" />
+    <input name="col" id="col" type="hidden" value="" />
+    <!-- <input name="word" type="hidden" value="" />-->
+    <input name="direction" id="direction" type="hidden" value="" />
+    <input name="gameID" id="gameID" type="hidden" value="@Model.GameID" />
+    <input name="playerID" id="playerID" type="hidden" value="@Model.UserPlayerID" />
+    <input name="tiles" id="tiles" type="hidden" value="" />
+    <input name="remainingTiles" id="remainingTiles" type="hidden" value="" />
+
+    <input type="submit" id="submitPlay" value="Submit Play" disabled="disabled" />
+    
+if (Model.IsUsersTurn)
+{
+    
+    <input type="button" id="swapTiles" value="Swap Tiles" onclick="swapTiles()" />
+}
+
+
+}
+
+@section info
+{
+    @{ // This extra level of brace shouldn't be necessary but there seems to be some sort of bug.
+       <table>
+                          <tr><td><h3>Tiles in Bag</h3><p> @Model.RemainingTilesInBag</p></td>
+                   
+               </tr>
+         <tr>
+           <td>
+           <!-- Show the players and their current score -->
+           <h3>Scoreboard</h3>
+           <table>
+           @{
+               foreach (Player player in Model.Players)
+               {
+                   bool isMyTurn = (Model.State != GameState.GameOver) &&
+                       (player.PlayerId == Model.CurrentTurnPlayerID);
+                   bool isMe = (Model.State != GameState.GameOver) &&
+                       (player.PlayerId == Model.UserPlayerID);
+                   <tr>
+                       <td><p> @player.Name </p></td>
+                    <td>
+                       <p>@player.Score
+                       <!-- An asterisk for the player whose turn it is. -->
+                       @if (isMyTurn)
+                       { 
+                           <span>*</span>
+                       }
+                           @if (player.GetTilesAsList().Count < 7)
+                           {
+                               <span>(@(player.GetTilesAsList().Count) tiles left)</span>
+                           }
+                       </p>
+                    </td>
+                   </tr>
+                   <tr>
+                       <td></td>
+                    <td>
+                        @if (isMe && isMyTurn)
+                        {
+                            <div class="scoreForPlay" id="scoreForPlay">+ 0</div>
+                        }
+                        else
+                        {
+                            <div> </div>
+                        }
+                   </td>
+                  </tr>
+               }
+
+               <tr>
+                   <td> @if (Model.State == GameState.GameOver)
+                        {
+                            <p>Game Over</p>
+                            <p>@Model.Winner wins!</p>
+                        }
+                   </td>
+               </tr>
+            }
+            </table>    
+           </td>
+         </tr>
+         <tr>
+             <td><h3>My Turn Games:</h3>
+                <!-- Show the user's current games if the user is logged in, otherwise show login -->
+                <ul>
+                @{
+                    int userPlayerId = Model.UserPlayerID;
+                    Player userPlayer = new Player(Model.GameID, userPlayerId);
+                    if (userPlayer.GetGameNames(true).Length == 0)
+                    {
+                        <li><p>None</p></li>
+                    }
+                    else
+                    {
+                        int[] gameIds = userPlayer.GetGameIDs(true);
+                        string[] names = userPlayer.GetGameNames(true);
+                        for (int index = 0; index < userPlayer.GetGameNames(true).Length; index++)
+                        {
+                                <li>
+                                     <a href="~/Board/Play?gameId=@gameIds[index]">@names[index]</a>
+                                    @if (gameIds[index] == Model.GameID)
+                                    {
+                                        <span>*</span>
+                                    }
+                                </li>
+                        }
+                    }
+                }
+                </ul>
+             </td>
+         </tr>
+       </table>
+    
+    }
+}
+
+@section rack
+    {
+    <table class="rack">
+        <tr id="tileRack">
+            <td class="rackCell"> 
+                <div class="rackSpace" id="rackSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)">
+        @{
+            int count = 0;
+            foreach (Tile tile in Model.Rack.Tiles)
+            {
+                if (tile != null)
+                {
+                    string tileID = "tile" + count;
+                    string tileImageFilename = "/images/tiles/Tile_" + tile.LetterChar + ".png";
+
+                        <img class="rackTile" id="@tileID" src="@tileImageFilename" alt="@tile.LetterChar@tile.PointValue" draggable="true" ondragstart="dragItem(event)" width="24" />
+                       
+                    count++;
+                }
+            }
+        } 
+
+               </div>
+           </td>
+        </tr>
+    </table>
+    }
+
+
+ 
+    
+
+

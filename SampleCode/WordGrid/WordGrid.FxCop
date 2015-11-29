@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FxCopProject Version="10.0" Name="My FxCop Project">
+ <ProjectOptions>
+  <SharedProject>True</SharedProject>
+  <Stylesheet Apply="False">$(FxCopDir)\Xml\FxCopReport.xsl</Stylesheet>
+  <SaveMessages>
+   <Project Status="Active, Excluded, Good, Noise" NewOnly="False" />
+   <Report Status="Active, Good, Noise" NewOnly="False" />
+  </SaveMessages>
+  <ProjectFile Compress="True" DefaultTargetCheck="True" DefaultRuleCheck="True" SaveByRuleGroup="" Deterministic="True" />
+  <EnableMultithreadedLoad>True</EnableMultithreadedLoad>
+  <EnableMultithreadedAnalysis>True</EnableMultithreadedAnalysis>
+  <SourceLookup>True</SourceLookup>
+  <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
+  <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
+  <Spelling Locale="en-US" />
+  <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
+  <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
+  <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
+  <DeadlockDetectionTimeout>120</DeadlockDetectionTimeout>
+  <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
+ </ProjectOptions>
+ <Targets>
+  <AssemblyReferenceDirectories>
+   <Directory>$(ProjectDir)/../../Program Files/Microsoft SDKs/Windows Azure/.NET SDK/2012-10/bin/runtimes/base/</Directory>
+  </AssemblyReferenceDirectories>
+  <Target Name="$(ProjectDir)/FsAzureHelper/bin/Debug/FsAzureHelper.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/MvcWebRole1/bin/MvcWebRole1.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/WordGridderGame/bin/Debug/WordGridderGame.dll" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/WorkerRole1/bin/Debug/WorkerRole1.dll" Analyze="True" AnalyzeAllChildren="True" />
+ </Targets>
+ <Rules>
+  <RuleFiles>
+   <RuleFile Name="$(FxCopDir)\Rules\AntiXssNotUsedRule.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\AspNetConfigurationSecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\AspNetMvcSecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\ASPNetSecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\DataflowRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\DesignRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\FxCopThincryptRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\GlobalizationRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\InteroperabilityRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\MaintainabilityRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\MobilityRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\MSInternalRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\NamingRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\PortabilityRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\ReliabilityRules.dll" Enabled="False" AllRulesEnabled="False" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityTransparencyRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\UsageRules.dll" Enabled="False" AllRulesEnabled="False" />
+  </RuleFiles>
+  <Groups />
+  <Settings />
+ </Rules>
+ <FxCopReport Version="10.0">
+  <Targets>
+   <Target Name="$(ProjectDir)/MvcWebRole1/bin/MvcWebRole1.dll">
+    <Modules>
+     <Module Name="mvcwebrole1.dll">
+      <Namespaces>
+       <Namespace Name="MvcWebRole1">
+        <Types>
+         <Type Name="BoardController">
+          <Members>
+           <Member Name="#CreateGame(System.Int32)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>The ValidateAntiForgeryAttribute is defined with both HttpVerbs.Get and HttpVerbs.Post. The attribute will not be used when GET verb is used.</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NewGame()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>The ValidateAntiForgeryAttribute is defined with both HttpVerbs.Get and HttpVerbs.Post. The attribute will not be used when GET verb is used.</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Play(System.Int32,System.String)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>The ValidateAntiForgeryAttribute is defined with both HttpVerbs.Get and HttpVerbs.Post. The attribute will not be used when GET verb is used.</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+       <Namespace Name="MvcWebRole1.Controllers">
+        <Types>
+         <Type Name="AccountController">
+          <Members>
+           <Member Name="#ExternalLoginCallback(System.String)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ExternalLoginFailure()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ExternalLoginsList(System.String)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Login(System.String)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Manage(System.Nullable`1&lt;MvcWebRole1.Controllers.AccountController+ManageMessageId&gt;)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#RedirectToLocal(System.String)">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Register()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#RemoveExternalLogins()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="HomeController">
+          <Members>
+           <Member Name="#About()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Contact()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Index()">
+            <Messages>
+             <Message TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332" Created="2012-12-03 21:21:04Z">
+              <Issue>
+               <Item>Missing ValidateAntiForgeryTokenAttribute</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+  </Targets>
+  <Rules>
+   <Rule TypeName="MarkVerbHandlersWithValidateAntiforgeryToken" Category="ASP.NET.MVC.Security" CheckId="CA5332">
+    <Resolution Name="Default">The controller action must use the ValidateAntiForgeryTokenAttribute attribute. Info: {0}</Resolution>
+   </Rule>
+  </Rules>
+ </FxCopReport>
+</FxCopProject>

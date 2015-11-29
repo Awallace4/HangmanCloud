@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="WordGrid1" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="2" osVersion="*" schemaVersion="2012-10.1.8">
+  <Role name="MvcWebRole1">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="StorageConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="ghogen" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCED/rTGoVPhaYSsIOZabXXpkwDQYJKoZIhvcNAQEBBQAEggEAmBpZ5KCx+cq/JmZUphpIee8kEYUVTidS+L8MOL8xCGGjY+dPehnbCLA9ilZeMvvugZTE0LkngRPQkWpvw8UMvgVg1wuIYZMdwICSyQWNbcF/Y093fxMnaaBkwyoUyQ4d+ks1LFrNTect+l+9jL8gca8TCPxXsIorDU7q7SSdiq6N6juSprAJt9w4n42bx8gTRS2Py8aGoxfAyIJoszv9lNpU4z9bOWIGh4HeP2m6bsj52HuofwKPthhblqgGbdeh4BMh+DZnBm/XXRm+FkoFA9LoeDBReIYZhAI5IrwpKD6ReaPAAxdB/03nc4BwyMKqeQP3+NjmKKtVXfgEFshWHzAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECKiIQzBpOkSlgBC5HtcJFjHTbjxewVY5ft93" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-11-30T23:59:59.0000000-08:00" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="570B91E2E7719C84B2B7BAD0576293B0763F138B" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+  <Role name="WorkerRole1">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="StorageConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="ghogen" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCED/rTGoVPhaYSsIOZabXXpkwDQYJKoZIhvcNAQEBBQAEggEAmBpZ5KCx+cq/JmZUphpIee8kEYUVTidS+L8MOL8xCGGjY+dPehnbCLA9ilZeMvvugZTE0LkngRPQkWpvw8UMvgVg1wuIYZMdwICSyQWNbcF/Y093fxMnaaBkwyoUyQ4d+ks1LFrNTect+l+9jL8gca8TCPxXsIorDU7q7SSdiq6N6juSprAJt9w4n42bx8gTRS2Py8aGoxfAyIJoszv9lNpU4z9bOWIGh4HeP2m6bsj52HuofwKPthhblqgGbdeh4BMh+DZnBm/XXRm+FkoFA9LoeDBReIYZhAI5IrwpKD6ReaPAAxdB/03nc4BwyMKqeQP3+NjmKKtVXfgEFshWHzAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECKiIQzBpOkSlgBC5HtcJFjHTbjxewVY5ft93" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2013-11-30T23:59:59.0000000-08:00" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="570B91E2E7719C84B2B7BAD0576293B0763F138B" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>
