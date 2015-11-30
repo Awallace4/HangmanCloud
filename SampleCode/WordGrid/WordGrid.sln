@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WordGridAzure", "WordGridder1\WordGridAzure.ccproj", "{33093407-FE0B-4449-9A58-2280623FFA94}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcWebRole1", "MvcWebRole1\MvcWebRole1.csproj", "{63C22CB2-AFC0-48E9-8065-E8260D9C2FBE}"
@@ -19,27 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{830B02
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 6
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs25
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = FsAzureHelper\\FsAzureHelper.fsproj
-		SccProjectName1 = FsAzureHelper
-		SccLocalPath1 = FsAzureHelper
-		SccProjectUniqueName2 = MvcWebRole1\\MvcWebRole1.csproj
-		SccProjectName2 = MvcWebRole1
-		SccLocalPath2 = MvcWebRole1
-		SccProjectUniqueName3 = WordGridder1\\WordGridAzure.ccproj
-		SccProjectName3 = WordGridder1
-		SccLocalPath3 = WordGridder1
-		SccProjectUniqueName4 = WordGridderGame\\WordGridGame.fsproj
-		SccProjectName4 = WordGridderGame
-		SccLocalPath4 = WordGridderGame
-		SccProjectUniqueName5 = WorkerRole1\\WorkerRole1.fsproj
-		SccProjectName5 = WorkerRole1
-		SccLocalPath5 = WorkerRole1
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
