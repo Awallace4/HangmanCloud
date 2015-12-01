@@ -16,7 +16,7 @@ open Microsoft.Office.Interop.Word
 #endif
 
 module DictionaryInfo =
-    let dictionaryFilename = "dictionary.txt"
+    let dictionaryFilename = "dictionary"
 
 #if USE_MSWORD_DICTIONARY
 // Includes functionality for looking up words in the Microsoft Word
@@ -85,8 +85,10 @@ type WorkerRole() =
                             RoleEnvironment.RequestRecycle())))))
     let storageAccount = CloudStorageAccount.FromConfigurationSetting("StorageConnectionString")
     let blobClient = storageAccount.CreateCloudBlobClient()
-    let blobContainer = blobClient.GetContainerReference("WordGrid")
+    let blobContainer = blobClient.GetContainerReference("wordgrid")
+     
     let queueClient = storageAccount.CreateCloudQueueClient()
+    
 
 #if USE_MSWORD_DICTIONARY
     let wordLookup = new WordLookup()
@@ -94,10 +96,17 @@ type WorkerRole() =
 
     // An in-memory representation of the word list that's used in this game.
     let dictionary =
-            let blob = blobContainer.GetBlobReference(DictionaryInfo.dictionaryFilename)
+            blobContainer.CreateIfNotExist()
+            let blob = blobContainer.GetBlobReference(DictionaryInfo.dictionaryFilename).ToBlockBlob
+            
+            //For offline debugging
+            //Must manually set path to dictionary.txt
+            use fileStream = System.IO.File.OpenRead("C:\Users\Andrew\Documents\CS\CS 491\Hangman\HangmanCloud\SampleCode\WordGrid\WorkerRole1\dictionary.txt")
+            blob.UploadFromStream(fileStream)
+            fileStream.Close()
             let blobString = blob.DownloadText()
             blobString.Split([|'\r'; '\n'|], StringSplitOptions.RemoveEmptyEntries)
-
+            
     // Looks up a single word in the dictionary.
     member this.IsValidWord(word) =
         Seq.exists (fun elem -> elem = word) dictionary
