@@ -52,7 +52,7 @@ namespace MvcWebRole1.Models
     public class TileRack
     {
         //int numberOfTiles;
-        Tile[] tilesInRack = new Tile[Constants.MaxTilesInRack];
+        Tile[] tilesInRack = new Tile[26];
 
         public TileRack(List<Tile> tiles)
         {
@@ -89,11 +89,7 @@ namespace MvcWebRole1.Models
 
         // These images are used for the spaces on the board.
         string[] imageFiles = { 
-            "/images/spaces/empty.png",
-            "/images/spaces/dl.png",
-            "/images/spaces/dw.png",
-            "/images/spaces/tl.png",
-            "/images/spaces/tw.png" };
+            "/images/spaces/empty.png" };
 
         // Construct a board cell.
         public BoardCell(Tile tileIn, SpaceType spaceIn, int cellIDIn)
