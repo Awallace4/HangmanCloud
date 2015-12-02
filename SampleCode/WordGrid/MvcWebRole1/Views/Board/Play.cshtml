@@ -75,32 +75,8 @@
 @using (@Html.BeginForm("Move", null, FormMethod.Post, new { name = "wordgrid", onsubmit = "return capturePlayDetails(event)" }))
 {
     @Html.AntiForgeryToken()
-    <h2>WordGrid</h2>
+    <h2>Hangman</h2>
     <p id="userMessage">@Model.UserMessage</p>
-<table id="board" class="board">
-@foreach (BoardRow row in Model.Rows)
-{
-    <tr class="row">
-    @{
-    foreach (BoardCell cell in row.Cells)
-    {
-            if (cell.IsEmpty)
-            {
-               <td class="cell"> <div class="boardSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)" id="@cell.CellID" onclick="OnClick(event)">
-                   <img id="img@(cell.CellID)" class="@cell.ClassName" alt="@((int)cell.Space)" src="@cell.ImagePath" width="24" /></div>
-               </td>
-            }
-            else
-            {           
-               <td class="cell"> <div class="boardSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)" id="@cell.CellID" onclick="OnClick(event)">
-                  <img id="img@(cell.CellID)" class="@cell.ClassName" alt="@cell.Letter@cell.PointValue" src="@cell.ImagePath" width="24" /></div>
-               </td>
-            }
-    }   
-    }
-    </tr>
-}
-</table>
 
 
     <input name="row" id="row" type="hidden" value="" />
