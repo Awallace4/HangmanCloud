@@ -26,7 +26,7 @@ namespace MvcWebRole1
             var currentUser = GetCurrentUserProfile();
             gameModel = GameModel.GetByID(gameID, currentUser);
             gameModel.UserMessage = userMessage;
-            ViewBag.Title = "Word Grid";
+            ViewBag.Title = "Hangman";
             return View(gameModel);
         }
 
@@ -37,25 +37,10 @@ namespace MvcWebRole1
         [ValidateAntiForgeryToken]
         public ActionResult Move(FormCollection formValues)
         {
+            // TODO: rewrite me to work for hangman
             int gameId = Int32.Parse( formValues["gameId"]);
             int playerId = Int32.Parse( formValues["playerId"]);
-            int row = Int32.Parse( formValues["row"]);
-            int col = Int32.Parse( formValues["col"]);
-            int direction = Int32.Parse(formValues["direction"]);
-            string tiles = formValues["tiles"];
-            string remainingTiles = formValues["remainingTiles"];
-            WordGridGame.Direction directionOfPlay;
-            switch (direction)
-            {
-                case 0: directionOfPlay = WordGridGame.Direction.Across;
-                    break;
-                case 1: directionOfPlay = WordGridGame.Direction.Down;
-                    break;
-                case 2: directionOfPlay = WordGridGame.Direction.Single;
-                    break;
-                default: directionOfPlay = WordGridGame.Direction.Across;
-                    break;
-            }
+
 
             var move = new WordGridGame.Move(gameId, playerId, row, col, directionOfPlay, tiles, remainingTiles);
             var user = GetCurrentUserProfile();
@@ -65,20 +50,6 @@ namespace MvcWebRole1
             return RedirectToAction("Play", new { gameId, userMessage });
         }
 
-        // GET: Board/Swap
-        // Processes a tile swap move.
-        [HttpGet]
-        public ActionResult Swap(string gameId, string playerId, string tilesToSwap)
-        {
-            var user = GetCurrentUserProfile();
-            gameModel = GameModel.GetByID(Int32.Parse(gameId), user);
-            if (gameModel.UserPlayerID == Int32.Parse(playerId))
-            {
-                gameModel.SwapTiles(tilesToSwap);
-            }
-            string userMessage = "You've swapped tiles.";
-            return RedirectToAction("Play", new { gameId, userMessage });
-        }
 
         // GET: Board/NewGame
         // Allows the user to start a new game.

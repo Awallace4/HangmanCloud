@@ -246,9 +246,10 @@ type WordState(wordToGuess : string) =
     let length = wordToGuess.Length
 
     // TODO: we need to handle spaces in the words carefully.
-
+    let mutable addedLetters : char list = [] 
     let mutable wordToFill : char [] =
         Array.init (length) (fun i -> if wordToGuess.Chars(i) = ' ' then ' ' else '_')
+    let mutable wordComplete = false
 
     // This constructor creates a board with no played tiles.
     new(wordToGuess) =
@@ -264,22 +265,29 @@ type WordState(wordToGuess : string) =
 
     // Creates a deep copy of the word state.
     member this.Copy() =
-        new WordState(wordToGuess)
+        let newState = WordState(wordToGuess)
+        for letter in addedLetters do
+            ignore(newState.AddLetter(letter))
+        newState
 
-   // Adds a letter to the board.            
+   // Adds a letter to the wordToFill.            
     member this.AddLetter(move : Move) =
         let  guessedLetter = move.GuessedLetter
-        this.AddLetter(move.GuessedLetter)
+        let found = this.AddLetter(move.GuessedLetter)
+        found
 
     member this.AddLetter(letter : char) =
         let guessedLetter = letter
+        let mutable found = false
         for i = 0 to length do
             // if guessedLetter = letter, put the letter at the same spot in wordToFill
             // TODO: add array containing letters that have been guessed, and
             // check this array before looping???
             if (guessedLetter = wordToGuess.[i]) then
                 Array.set wordToFill i guessedLetter
-                
+                addedLetters <- guessedLetter :: addedLetters
+                found <- true
+        found             
 
     // Returns the current state of the word to fill
     member this.WordToFill =
@@ -289,6 +297,9 @@ type WordState(wordToGuess : string) =
     member this.WordToGuess = 
         wordToGuess
 
+    member this.WordComplete = 
+        wordComplete
+
     // Convert a text string into a word to fill. Text strings are used in the database to store
     // the word state, so this method is called whenever the game is loaded from the database.
     static member FromString(wordStateIn:string) = 
@@ -296,7 +307,7 @@ type WordState(wordToGuess : string) =
         let newState = new WordState(wordStateIn.Substring(0, newLength))
             
         for i = newLength to wordStateIn.Length do
-            newState.AddLetter(wordStateIn.Chars(i))
+            ignore(newState.AddLetter(wordStateIn.Chars(i)))
         newState
 
     // Convert a word state to a text string in order to save it in the database.
@@ -313,7 +324,7 @@ type WordState(wordToGuess : string) =
 
 // Represents a hangman game, including the players, state, tile bag, and board layout.
 type Game( id, name, players : Player[], wordToGuess : string, 
-            wordState : WordState, state : GameState, hangManState : HangManState, currentPlayerPosition) =
+            wordState : WordState, state : GameState, hangmanState : HangManState, currentPlayerPosition) =
 
     // Represents the game board with all committed plays.
     let mutable wordState = new WordState(wordToGuess)
@@ -321,9 +332,9 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // Represents the proposed game state including the current play.
     let mutable newState : WordState = new WordState()
 
-    let mutable hangManState = hangManState 
+    let mutable hangmanState = (int)hangmanState 
 
-
+    let mutable GuessedLetters : char list = []
 
     let mutable nextId = 0
 
@@ -337,7 +348,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // For a two-player game, this is 0 or 1. The position is used as the array index
     // in the Players array.
     member val CurrentPlayerPosition = currentPlayerPosition with get, set
-    member val AvailableLetters = [| 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z' |]
+    member val ValidLetters = [| 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z' |]
     // The name of the current game.
     member val Name = name
 
@@ -456,40 +467,66 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     // Rejects a move when one or more words are not in the dictionary.
     // TODO: do we need this -- could rewrite for notifying when user tries a letter that's already been used?
-    member this.RejectMove(invalidWords:string list) =
-        match invalidWords with
-        | [] -> "Internal error in Word Grid server."
-        | [word] -> System.String.Format("Sorry, {0} is not in the dictionary.", word)
-        | [first; second] -> System.String.Format("Sorry, {0} and {1} are not in the dictionary.", first, second)
-        | head :: tail -> System.String.Format("Sorry, the words {0}, and {1} are not in the dictionary.", String.concat ", " tail, head)
+    member this.RejectMove() =
+        //match invalidWords with
+        //| [] -> "Internal error in Word Grid server."
+        //| [word] -> System.String.Format("Sorry, {0} is not in the dictionary.", word)
+        //| [first; second] -> System.String.Format("Sorry, {0} and {1} are not in the dictionary.", first, second)
+        //| head :: tail -> System.String.Format("Sorry, the words {0}, and {1} are not in the dictionary.", String.concat ", " tail, head)
+        ()
+
+    member this.CheckMove(move : Move) = 
+        let contains x = Seq.exists ((=) x)
+        let letter = move.GuessedLetter
+        if (not (contains letter GuessedLetters) && (contains letter this.ValidLetters)) then
+            true
+        else
+            false
+            
 
     // Process a move submitted by a player.
     // TODO: rewrite this to handle hangman stuff
     member this.ProcessMove(playerId : int, move : Move) =
         newState <- wordState.Copy()
-        newState.AddLetter(move)
+        let found = newState.AddLetter(move)
         // TODO: check if letter has already been tried -- this determines legality of move
-        let isLegalMove, score, wordsResults = this.CheckMove(move)
-        let mainWord, _ = List.head wordsResults
+        let isLegalMove = this.CheckMove(move)
         if (not isLegalMove) then
-            // Identify invalid words
-            let invalidWords =
-                List.filter (fun (_, isValid) -> isValid = false) wordsResults
-                |> List.map (fun (word, _) -> word)
-
-            // Return invalid words to the player, reject move.
-            this.RejectMove(invalidWords)
+            this.RejectMove()
+            
         else
-            // Legal move. Commit it, check for game over, draw tiles, update current player's turn.
+            // Legal move. Commit it, check for game over, update current player's turn.
+            
+            // if letter in word, cool --> game might end if that finishes the word
+            // if letter NOT in word, we must add a body part to hangman and possibly end the game
+            
+
             wordState <- newState.Copy()
             this.State <- GameState.InProgress
             // current player should already be known!
             let player = players.[this.CurrentPlayerPosition]
+            this.MoveCount <- this.MoveCount + 1
+
+            if (found) then
+                // this means the guessed letter is part of the word to guess and was thus added
+                // TODO: check if this completes the word, and if so, game over
+                // otherwise, swap turn
+                if (wordState.WordComplete) then
+                    // game over
+                else
+                    // swap turn
+            else
+                // guessed letter was not in the word to guess, need to add a hangman body part
+                hangmanState <- hangmanState + 1
+                if (hangmanState = (int)(HangManState.Dead)) then
+                    // game over
+                else
+                    // swap turn
 
             // TODO: if hangman is dead or word is solved, game is over
             if (List.isEmpty this.TileBag && player.Tiles.Length = 0) then
                 // The game is over
-                this.MoveCount <- this.MoveCount + 1
+                
                 this.State <- GameState.GameOver
                 this.EndGameScoreAdjust(true)
                 // Update the database tables: Games, PlayerState, Plays
