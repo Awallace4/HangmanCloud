@@ -80,42 +80,38 @@ type HangManState =
     | LeftLeg = 5
     | Dead = 6
 
-// Represents a WordGrid tile.
-[<AllowNullLiteral>]
-type Tile(letter : Letter, blankLetter : Letter option) =
+type WordGenerator =
+    // Get a random word from the dictionary
+    // TODO: this needs to be static, outside of Game type, so we can call it from the
+    // Game constructor.
+    static member GenerateRandomWord(gameName : string, generateQueue : CloudQueue, resultsQueue : CloudQueue) =
+        let now = System.DateTime.Now
+        let messageHeader = now.ToLongTimeString()
+                            + " " + now.ToLongDateString()
+                            + " " + gameName
+        let message = new CloudQueueMessage(messageHeader)
+        generateQueue.AddMessage(message)
+        let rec findResults n = 
+            // Wait for a return message.
+            System.Threading.Thread.Sleep(1000)
+            let result =
+                resultsQueue.GetMessages(32)
+                |> Seq.tryPick(fun message ->
+                    let results = message.AsString
+                    let split = results.Split([|'\n'|])
+                    if (split.[0] = messageHeader) then
+                        resultsQueue.DeleteMessage(message.Id, message.PopReceipt)
+                        let result = split.[1]
+                        Some (result)
+                    else
+                        None)
+            match result with
+            | Some x -> x
+            | None -> findResults (n + 1)
 
-    // For a played tile, the second parameter can be a letter when the first parameter is Letter.Blank
-    static let letterChar = 
-       [| '_'; 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z' |]
+        let result = findResults 0
 
-    static let pointValues =
-       [| 0; 1; 3; 4; 2; 1; 4; 2; 4; 1; 8; 5; 1; 3; 1; 1; 3; 10; 1; 1; 1; 1; 5; 4; 8; 4; 10 |]
-
-    let letterValue = letter
-
-    let pointValue = 
-        pointValues.[(int) letterValue]
- 
-
-    member this.LetterChar = letterChar.[int letterValue]
-    member this.LetterValue = letterValue
-    member this.PointValue = pointValue        
-    member val BlankLetter : Letter option = blankLetter with get, set
-
-    static member FromString(tiles : string) =
-        Seq.map(fun (elem : char) -> new Tile(elem)) tiles
-        |> Seq.toList
-
-    new(letter : Letter) =
-        new Tile(letter, None)
-        
-    new(ch : char) =
-        if (ch =  '_') then Tile(Letter.Blank) else
-            if (ch >= 'a' && ch <= 'z') then
-                // This represents a blank tile that has been played as a letter.
-                Tile( Letter.Blank, Some(enum<Letter> (int ch - int 'a' + 1 )))
-            else
-                Tile( enum<Letter> (int ch - int 'A' + 1))
+        result
 
 
 // Represents a player in an active game and manages the state for that player,
@@ -248,13 +244,11 @@ type Move(gameId : int, playerId : int, guessedLetter : char) =
 // of played tiles.
 type WordState(wordToGuess : string) =
     let length = wordToGuess.Length
-    let wordToGuess : char [] = 
-        Array.init (length) (fun index -> wordToGuess.Chars(index))
 
     // TODO: we need to handle spaces in the words carefully.
 
     let mutable wordToFill : char [] =
-        Array.init (length) (fun index -> '_')
+        Array.init (length) (fun i -> if wordToGuess.Chars(i) = ' ' then ' ' else '_')
 
     // This constructor creates a board with no played tiles.
     new(wordToGuess) =
@@ -285,6 +279,7 @@ type WordState(wordToGuess : string) =
             // check this array before looping???
             if (guessedLetter = wordToGuess.[i]) then
                 Array.set wordToFill i guessedLetter
+                
 
     // Returns the current state of the word to fill
     member this.WordToFill =
@@ -328,30 +323,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     let mutable hangManState = hangManState 
 
-    // TODO: move to FsAzureHelper project.
-    do CloudStorageAccount.SetConfigurationSettingPublisher(new System.Action<_, _>(fun configName configSetter  ->
-                      // Provide the configSetter with the initial value
-                      configSetter.Invoke( RoleEnvironment.GetConfigurationSettingValue( configName ) ) |> ignore
-                      RoleEnvironment.Changed.AddHandler( new System.EventHandler<_>(fun sender arg ->
-                        arg.Changes
-                        |> Seq.toList
-                        |> List.filter (fun change -> change :? RoleEnvironmentConfigurationSettingChange)
-                        |> List.map (fun change -> change :?> RoleEnvironmentConfigurationSettingChange)
-                    |> List.filter (fun change -> change.ConfigurationSettingName = configName && 
-                                                      not (configSetter.Invoke( RoleEnvironment.GetConfigurationSettingValue(configName))))
-                        |> List.iter (fun change ->
-                            // In this case, the change to the storage account credentials in the
-                            // service configuration is significant enough that the role needs to be
-                            // recycled in order to use the latest settings (for example, the 
-                            // endpoint may have changed)
-                            RoleEnvironment.RequestRecycle())))))
 
-    let storageAccount = CloudStorageAccount.FromConfigurationSetting("StorageConnectionString")
-    let queueClient = storageAccount.CreateCloudQueueClient()
-    let generateQueue = queueClient.GetQueueReference("generate")
-    let resultsQueue = queueClient.GetQueueReference("results")
-    do generateQueue.CreateIfNotExist() |> ignore
-    do resultsQueue.CreateIfNotExist() |> ignore
 
     let mutable nextId = 0
 
@@ -401,6 +373,30 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     // This constructor is used to create a brand new game.
     new(players : Player []) =
+        // TODO: move to FsAzureHelper project.
+        do CloudStorageAccount.SetConfigurationSettingPublisher(new System.Action<_, _>(fun configName configSetter  ->
+                          // Provide the configSetter with the initial value
+                          configSetter.Invoke( RoleEnvironment.GetConfigurationSettingValue( configName ) ) |> ignore
+                          RoleEnvironment.Changed.AddHandler( new System.EventHandler<_>(fun sender arg ->
+                            arg.Changes
+                            |> Seq.toList
+                            |> List.filter (fun change -> change :? RoleEnvironmentConfigurationSettingChange)
+                            |> List.map (fun change -> change :?> RoleEnvironmentConfigurationSettingChange)
+                        |> List.filter (fun change -> change.ConfigurationSettingName = configName && 
+                                                          not (configSetter.Invoke( RoleEnvironment.GetConfigurationSettingValue(configName))))
+                            |> List.iter (fun change ->
+                                // In this case, the change to the storage account credentials in the
+                                // service configuration is significant enough that the role needs to be
+                                // recycled in order to use the latest settings (for example, the 
+                                // endpoint may have changed)
+                                RoleEnvironment.RequestRecycle())))))
+
+        let storageAccount = CloudStorageAccount.FromConfigurationSetting("StorageConnectionString")
+        let queueClient = storageAccount.CreateCloudQueueClient()
+        let generateQueue = queueClient.GetQueueReference("generate")
+        let resultsQueue = queueClient.GetQueueReference("results")
+        do generateQueue.CreateIfNotExist() |> ignore
+        do resultsQueue.CreateIfNotExist() |> ignore
         let gameName = players.[0].Name + " VS " + players.[1].Name
  
         Game.DataContext.Connection.Open()
@@ -408,9 +404,14 @@ type Game( id, name, players : Player[], wordToGuess : string,
         // Make sure all the players exist in the database.
         for player in players do
             Game.DataContext.SpAddPlayer(Util.nullable player.UserId, player.Name) |> ignore
-        let gameState = (new WordState()).AsString
+        let wordToFill = (new WordState()).AsString
+        // TODO: need to generate random word here.
+        let wordToGuess = WordGenerator.GenerateRandomWord(gameName, generateQueue, resultsQueue)
+        let guessedLetters = ""
+
         // TODO: THIS PROC NEEDS TO BE REWORKED
-        let results = Game.DataContext.SpCreateGame(gameName, wordState)
+        // this proc now takes parameters name, wordToGuess, wordToFill, guessedLetter
+        let results = Game.DataContext.SpCreateGame(gameName, wordToGuess, wordToFill, guessedLetters)
                       |> List.ofSeq
         assert(results.Length = 1)
         let gameId = results.Head.Id.Value
@@ -434,42 +435,6 @@ type Game( id, name, players : Player[], wordToGuess : string,
            }
         |> Seq.exactlyOne
 
-
-    // Get a random word from the dictionary
-    member this.GenerateRandomWord =
-#if SKIPDICTIONARY
-        List.init (List.length words) (fun _ -> true)
-        |> List.zip words
-#else
-        let now = System.DateTime.Now
-        let messageHeader = now.ToLongTimeString()
-                            + " " + now.ToLongDateString()
-                            + " " + this.Players.[this.CurrentPlayerPosition].PlayerId.ToString()
-                            + " " + this.GameId.ToString()
-        let message = new CloudQueueMessage(messageHeader)
-        generateQueue.AddMessage(message)
-        let rec findResults n = 
-            // Wait for a return message.
-            System.Threading.Thread.Sleep(1000)
-            let result =
-                resultsQueue.GetMessages(32)
-                |> Seq.tryPick(fun message ->
-                    let results = message.AsString
-                    let split = results.Split([|'\n'|])
-                    if (split.[0] = messageHeader) then
-                        resultsQueue.DeleteMessage(message.Id, message.PopReceipt)
-                        let result = split.[1]
-                        Some (result)
-                    else
-                        None)
-            match result with
-            | Some x -> x
-            | None -> findResults (n + 1)
-
-        let result = findResults 0
-
-        result
-#endif
             
     member this.TryFindResponse(messageHeader) =
         async {
@@ -528,7 +493,9 @@ type Game( id, name, players : Player[], wordToGuess : string,
                 this.State <- GameState.GameOver
                 this.EndGameScoreAdjust(true)
                 // Update the database tables: Games, PlayerState, Plays
-                    
+                   
+                // TODO: this proc now takes parameters gameId, playerId, moveNumber, 
+                // guessedLetter, guessedLetters, wordToFill, hangmanState, gameState, and currentPlayerPosition.
                 Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
                                             Util.nullable player.PlayerId,
                                             Util.nullable this.MoveCount,
