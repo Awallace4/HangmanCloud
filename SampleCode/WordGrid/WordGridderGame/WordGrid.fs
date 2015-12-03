@@ -300,6 +300,11 @@ type WordState(wordToGuess : string) =
     member this.WordComplete = 
         wordComplete
 
+    member this.AddedLetters = 
+        System.String.Concat(Array.ofList(addedLetters))
+
+    // TODO: we may only need to save the wordToFill wihtout the wordToGuess...
+
     // Convert a text string into a word to fill. Text strings are used in the database to store
     // the word state, so this method is called whenever the game is loaded from the database.
     static member FromString(wordStateIn:string) = 
@@ -324,7 +329,7 @@ type WordState(wordToGuess : string) =
 
 // Represents a hangman game, including the players, state, tile bag, and board layout.
 type Game( id, name, players : Player[], wordToGuess : string, 
-            wordState : WordState, state : GameState, hangmanState : HangManState, currentPlayerPosition) =
+            wordState : WordState, state : GameState, hangmanState : int, currentPlayerPosition) =
 
     // Represents the game board with all committed plays.
     let mutable wordState = new WordState(wordToGuess)
@@ -332,7 +337,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // Represents the proposed game state including the current play.
     let mutable newState : WordState = new WordState()
 
-    let mutable hangmanState = (int)hangmanState 
+    let mutable hangmanState = hangmanState 
 
     let mutable GuessedLetters : char list = []
 
@@ -379,8 +384,8 @@ type Game( id, name, players : Player[], wordToGuess : string,
                           |> Seq.toArray
         let currentPlayerPosition = gameFromDb.CurrentPlayerPosition.GetValueOrDefault()
         Game( gameFromDb.Id, gameFromDb.Name, players, gameFromDb.WordToGuess, 
-             WordState.FromString(gameFromDb.WordState), enum<GameState> gameFromDb.GameState, 
-             enum<HangManState> gameFromDb.HangManState, currentPlayerPosition)
+             WordState.FromString(gameFromDb.WordToFill), enum<GameState> gameFromDb.GameState, 
+             (int)(gameFromDb.HangManState), currentPlayerPosition)
 
     // This constructor is used to create a brand new game.
     new(players : Player []) =
@@ -415,10 +420,11 @@ type Game( id, name, players : Player[], wordToGuess : string,
         // Make sure all the players exist in the database.
         for player in players do
             Game.DataContext.SpAddPlayer(Util.nullable player.UserId, player.Name) |> ignore
-        let wordToFill = (new WordState()).AsString
+
         // TODO: need to generate random word here.
         let wordToGuess = WordGenerator.GenerateRandomWord(gameName, generateQueue, resultsQueue)
         let guessedLetters = ""
+        let wordToFill = (new WordState(wordToGuess)).AsString
 
         // TODO: THIS PROC NEEDS TO BE REWORKED
         // this proc now takes parameters name, wordToGuess, wordToFill, guessedLetter
@@ -437,6 +443,8 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // An array of the players.  CurrentPlayerPosition is used as the index.
     member this.Players = players
 
+    member this.WordState = wordState
+
     // Gets the type provider type for one of the players from the database.
     member this.GetPlayerById(playerId) =
         query {
@@ -446,25 +454,6 @@ type Game( id, name, players : Player[], wordToGuess : string,
            }
         |> Seq.exactlyOne
 
-            
-    member this.TryFindResponse(messageHeader) =
-        async {
-            let! results = resultsQueue.GetMessagesAsync(32)
-            let response = results
-                           |> Seq.tryPick (fun message ->
-                                    let results = message.AsString
-                                    let split = results.Split([|'\n'|])
-                                    if (split.[0] = messageHeader) then
-                                        Async.Start <| resultsQueue.DeleteMessageAsync(message.Id, message.PopReceipt)
-                                        let result = split |> Array.toList |> List.tail
-                                        Some(result)
-                                    else
-                                        None
-                                    )
-            return response
-        }
-
-
     // Rejects a move when one or more words are not in the dictionary.
     // TODO: do we need this -- could rewrite for notifying when user tries a letter that's already been used?
     member this.RejectMove() =
@@ -473,7 +462,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
         //| [word] -> System.String.Format("Sorry, {0} is not in the dictionary.", word)
         //| [first; second] -> System.String.Format("Sorry, {0} and {1} are not in the dictionary.", first, second)
         //| head :: tail -> System.String.Format("Sorry, the words {0}, and {1} are not in the dictionary.", String.concat ", " tail, head)
-        ()
+        ""
 
     member this.CheckMove(move : Move) = 
         let contains x = Seq.exists ((=) x)
@@ -492,15 +481,11 @@ type Game( id, name, players : Player[], wordToGuess : string,
         // TODO: check if letter has already been tried -- this determines legality of move
         let isLegalMove = this.CheckMove(move)
         if (not isLegalMove) then
+            // TODO: uhhhhhhh
             this.RejectMove()
-            
-        else
-            // Legal move. Commit it, check for game over, update current player's turn.
-            
+        else            
             // if letter in word, cool --> game might end if that finishes the word
             // if letter NOT in word, we must add a body part to hangman and possibly end the game
-            
-
             wordState <- newState.Copy()
             this.State <- GameState.InProgress
             // current player should already be known!
@@ -513,76 +498,68 @@ type Game( id, name, players : Player[], wordToGuess : string,
                 // otherwise, swap turn
                 if (wordState.WordComplete) then
                     // game over
+                    this.State <- GameState.GameOver
+                    this.EndGame(move, player)
                 else
                     // swap turn
+                    this.SwapTurn(move, player)
+                    System.String.Format("Letter {0} WAS in the word!", move.GuessedLetter)
             else
                 // guessed letter was not in the word to guess, need to add a hangman body part
                 hangmanState <- hangmanState + 1
                 if (hangmanState = (int)(HangManState.Dead)) then
-                    // game over
+                    // game over                
+                    this.State <- GameState.GameOver
+                    this.EndGame(move, player)
                 else
                     // swap turn
-
-            // TODO: if hangman is dead or word is solved, game is over
-            if (List.isEmpty this.TileBag && player.Tiles.Length = 0) then
-                // The game is over
+                    this.SwapTurn(move, player)
+                    System.String.Format("Letter {0} was NOT in the word!", move.GuessedLetter)
                 
-                this.State <- GameState.GameOver
-                this.EndGameScoreAdjust(true)
-                // Update the database tables: Games, PlayerState, Plays
-                   
-                // TODO: this proc now takes parameters gameId, playerId, moveNumber, 
-                // guessedLetter, guessedLetters, wordToFill, hangmanState, gameState, and currentPlayerPosition.
-                Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
-                                            Util.nullable player.PlayerId,
-                                            Util.nullable this.MoveCount,
-                                            Game.AsString player.Tiles,
-                                            mainWord,
-                                            gameBoard.AsString,
-                                            Game.AsString this.TileBag,
-                                            Util.nullable player.Score,
-                                            Util.nullable (int this.State),
-                                            Util.nullable (-1))
-                            |> ignore
 
-                Game.DataContext.Connection.Open()
-                for player in this.Players do
-                    let commandText = System.String.Format("UPDATE PlayerState SET PlayerState.Score={0} WHERE PlayerState.GameID={1} AND PlayerState.PlayerId={2}",
-                                                    player.Score, this.GameId, player.PlayerId)
-                    
-                    Game.DataContext.DataContext.ExecuteCommand(commandText)
+    member this.SwapTurn(move : Move, player : Player) = 
+        // Update the database tables: Games, PlayerState, Plays
+
+        // TODO: this proc now takes parameters gameId, playerId, moveNumber, 
+        // guessedLetter, guessedLetters, wordToFill, hangmanState, gameState, and currentPlayerPosition.
+        Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
+                                    Util.nullable player.PlayerId,
+                                    Util.nullable this.MoveCount,
+                                    move.GuessedLetter.ToString(),
+                                    wordState.AddedLetters,
+                                    wordState.AsString,
+                                    Util.nullable hangmanState,
+                                    Util.nullable (int this.State),
+                                    Util.nullable ((this.CurrentPlayerPosition + 1) % players.Length))
+        |> ignore
+        this.CurrentPlayerPosition <- (this.CurrentPlayerPosition + 1) % players.Length
+
+    member this.EndGame(move : Move, player : Player) = 
+        // Update the database tables: Games, PlayerState, Plays
+                   
+        // TODO: this proc now takes parameters gameId, playerId, moveNumber, 
+        // guessedLetter, guessedLetters, wordToFill, hangmanState, gameState, and currentPlayerPosition.
+        Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
+                                    Util.nullable player.PlayerId,
+                                    Util.nullable this.MoveCount,
+                                    move.GuessedLetter.ToString(),
+                                    wordState.AddedLetters,
+                                    wordState.AsString,
+                                    Util.nullable hangmanState,
+                                    Util.nullable (int this.State),
+                                    Util.nullable (-1))
                     |> ignore
-                Game.DataContext.Connection.Close()
-                System.String.Format("Game over! Your final score is {0}.", player.Score)
-            else
-                this.MoveCount <- this.MoveCount + 1
-                    
-                // Update the database tables: Games, PlayerState, Plays
-                Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
-                                            Util.nullable player.PlayerId,
-                                            Util.nullable this.MoveCount,
-                                            Game.AsString player.Tiles,
-                                            mainWord,
-                                            gameBoard.AsString,
-                                            Game.AsString this.TileBag,
-                                            Util.nullable player.Score,
-                                            Util.nullable (int this.State),
-                                            Util.nullable ((this.CurrentPlayerPosition + 1) % players.Length))
-                |> ignore
-                this.CurrentPlayerPosition <- (this.CurrentPlayerPosition + 1) % players.Length
-                System.String.Format("You played {0} for {1} points.", mainWord, score )
+        System.String.Format("Game over! The word was {0}.", wordState.WordToGuess)
+
 
     // Start a game by drawing tiles for each player and updating the initial game state in the database.
     member this.StartGame() =            
        
         Game.DataContext.Connection.Open()
-        let commandText = System.String.Format("UPDATE Games SET Games.Name = '{0}', Games.GameState = {1}, Games.BoardLayout = '{2}', Games.Tilebag = '{3}'" +
-                                                "WHERE Games.Id = {4}",
-                                                this.Name, int GameState.FirstMove, this.Board.AsString, Game.AsString this.TileBag, this.GameId)
+        // TODO: rewrite this query
+        let commandText = System.String.Format("UPDATE Games SET Games.Name = '{0}', Games.GameState = {1}, Games.WordToGuess = {2}, Games.WordToFill = {3}, Games.HangManState = {4}, Games.GuessedLetters = {5}" +
+                                                "WHERE Games.Id = {6}",
+                                                this.Name, int GameState.FirstMove, wordToGuess, this.WordState.AsString, hangmanState, GuessedLetters, this.GameId)
         Game.DataContext.DataContext.ExecuteCommand(commandText) |> ignore;
-        for player in this.Players do
-            let commandText = System.String.Format("INSERT INTO PlayerState VALUES('{0}', '{1}', '{2}', '{3}')",
-                                                    Game.AsString player.Tiles, player.Score, player.PlayerId, this.GameId);
-            Game.DataContext.DataContext.ExecuteCommand(commandText) |> ignore;
-            Game.DataContext.Connection.Close()
+        Game.DataContext.Connection.Close()
            
