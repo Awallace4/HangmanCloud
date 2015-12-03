@@ -14,9 +14,6 @@ namespace MvcWebRole1
     [ValidateInput(true)]
     public class BoardController : Controller
     {
-
-        int x;
-
         GameModel gameModel;
 
         // GET: Board/Play
@@ -40,9 +37,9 @@ namespace MvcWebRole1
             // TODO: rewrite me to work for hangman
             int gameId = Int32.Parse( formValues["gameId"]);
             int playerId = Int32.Parse( formValues["playerId"]);
+            char guessedLetter = Char.Parse(formValues["guessedLetter"]);
 
-
-            var move = new WordGridGame.Move(gameId, playerId, row, col, directionOfPlay, tiles, remainingTiles);
+            var move = new WordGridGame.Move(gameId, playerId, guessedLetter);
             var user = GetCurrentUserProfile();
             gameModel = GameModel.GetByID(move.GameID, user);
             string userMessage = gameModel.PlayMove(move);

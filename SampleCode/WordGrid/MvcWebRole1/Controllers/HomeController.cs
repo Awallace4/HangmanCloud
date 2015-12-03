@@ -14,21 +14,21 @@ namespace MvcWebRole1.Controllers
         public ActionResult Index()
         {
             PlayerModel playerModel = null;
-            ViewBag.Message = "A word game developed in C#/F#/Javascript/MVC and hosted on Windows Azure.";
+            ViewBag.Message = "A hangman developed in C#/F#/Javascript/MVC and hosted on Windows Azure.";
             playerModel = GetCurrentUserAsPlayer();
             return View(playerModel); 
         }
 
         public ActionResult About()
         {
-            ViewBag.Message = "This game is a crossword game that can be played by two players anywhere on the Internet.";
+            ViewBag.Message = "This game is a hangman game that can be played by two players anywhere on the Internet.";
 
             return View();
         }
 
         public ActionResult Contact()
         {
-            ViewBag.Message = "Look up this project at codeplex.com.";
+            ViewBag.Message = "github.com/Awallace4/HangmanCloud .";
 
             return View();
         }
