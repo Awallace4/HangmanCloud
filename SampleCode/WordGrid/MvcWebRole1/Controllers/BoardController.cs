@@ -34,7 +34,6 @@ namespace MvcWebRole1
         [ValidateAntiForgeryToken]
         public ActionResult Move(FormCollection formValues)
         {
-            // TODO: rewrite me to work for hangman
             int gameId = Int32.Parse( formValues["gameId"]);
             int playerId = Int32.Parse( formValues["playerId"]);
             char guessedLetter = Char.Parse(formValues["guessedLetter"]);

@@ -325,8 +325,6 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     let mutable hangmanState = hangmanState 
 
-    let mutable GuessedLetters : char list = []
-
     let mutable nextId = 0
 
     // The data context which is used to get at the type provider's types.
@@ -454,7 +452,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
     member this.CheckMove(move : Move) = 
         let contains x = Seq.exists ((=) x)
         let letter = move.GuessedLetter
-        if (not (contains letter GuessedLetters) && (contains letter this.ValidLetters)) then
+        if (not (contains letter wordState.UsedLetters) && (contains letter this.ValidLetters)) then
             true
         else
             false
@@ -546,7 +544,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
         // TODO: rewrite this query
         let commandText = System.String.Format("UPDATE Games SET Games.Name = '{0}', Games.GameState = {1}, Games.WordToGuess = {2}, Games.WordToFill = {3}, Games.HangManState = {4}, Games.GuessedLetters = {5}" +
                                                 "WHERE Games.Id = {6}",
-                                                this.Name, int GameState.FirstMove, wordToGuess, this.WordState.AsString, hangmanState, GuessedLetters, this.GameId)
+                                                this.Name, int GameState.FirstMove, wordToGuess, this.WordState.AsString, hangmanState, this.WordState.UsedLetters, this.GameId)
         Game.DataContext.DataContext.ExecuteCommand(commandText) |> ignore;
         for player in this.Players do
             let commandText = System.String.Format("INSERT INTO PlayerState VALUES('{0}', '{1}')",
