@@ -237,17 +237,15 @@ type WordState(wordToGuess : string) =
         Array.init (length) (fun i -> if wordToGuess.Chars(i) = ' ' then ' ' else '_')
     let mutable wordComplete = false
 
-    // This constructor creates a board with no played tiles.
-    new(wordToGuess) =
-        WordState(wordToGuess)
-
     // Gets the letter at a specific location, or None if the space is empty.
     member this.Letter(index) =
         wordToFill.[index]
 
     // Creates a deep copy of the word state.
     member this.Copy() =
-        let newState = WordState(wordToGuess)
+        System.Diagnostics.Debug.WriteLine( "Executing WordState.Copy()...")
+        System.Diagnostics.Debug.WriteLine( "Word to guess is " +  this.WordToGuess)
+        let newState = WordState(this.WordToGuess)
         for letter in usedLetters do
             ignore(newState.AddLetter(letter))
         newState
@@ -259,13 +257,16 @@ type WordState(wordToGuess : string) =
         found
 
     member this.AddLetter(letter : char) =
+        System.Diagnostics.Debug.WriteLine( "Executing WordState.AddLetter()...")
+        System.Diagnostics.Debug.WriteLine( "Guessed letter is " + (letter.ToString()))
+        System.Diagnostics.Debug.WriteLine("Length of word to guess is " + wordToGuess.Length.ToString())
         let guessedLetter = letter
         let mutable found = false
-        for i = 0 to length do
+        for i = 0 to wordToGuess.Length - 1 do
             // if guessedLetter = letter, put the letter at the same spot in wordToFill
             // TODO: add array containing letters that have been guessed, and
             // check this array before looping???
-            if (guessedLetter = wordToGuess.[i]) then
+            if (guessedLetter = wordToGuess.Chars(i)) then
                 Array.set wordToFill i guessedLetter
                 usedLetters <- guessedLetter :: usedLetters
                 found <- true
@@ -298,20 +299,29 @@ type WordState(wordToGuess : string) =
     // Convert a text string into a word to fill. Text strings are used in the database to store
     // the word state, so this method is called whenever the game is loaded from the database.
     static member FromString(wordStateIn:string, wordToGuess:string) = 
+        System.Diagnostics.Debug.WriteLine("Executing WordState.FromString()")
+        System.Diagnostics.Debug.WriteLine( "String from database is: " + wordStateIn)
+        System.Diagnostics.Debug.WriteLine( "Word to guess is:" + wordToGuess)
+
         let newState = new WordState(wordToGuess)
             
-        for i = 0 to wordStateIn.Length do
+        for i = 0 to wordStateIn.Length - 1 do
             ignore(newState.AddLetter(wordStateIn.Chars(i)))
         newState
 
     // Convert a word state to a text string in order to save it in the database.
     member this.AsString =
+        System.Diagnostics.Debug.WriteLine( "Executing WordState.AsString()...")
         let charArray = Array.init (length) (fun index -> '_')
         // copy wordToFill into the array
         for i = 0 to length-1 do
             Array.set charArray i wordToFill.[i]
+
         // create string out of resulting array
-        new System.String(charArray)
+        let outString = System.String(charArray)
+        System.Diagnostics.Debug.WriteLine( "word state as string is: " + outString)
+        outString
+
 
 // Represents a hangman game, including the players, state, tile bag, and board layout.
 type Game( id, name, players : Player[], wordToGuess : string, 
