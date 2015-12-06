@@ -161,6 +161,26 @@ namespace MvcWebRole1.Models
             get { return game.State; }
         }
 
+        public string WordToFillDisplay
+        {
+            get { return game.WordState.AsDisplayString; }
+        }
+
+        public WordState WordToFill
+        {
+            get { return game.WordState; }
+        }
+
+        public string WordToGuess
+        {
+            get { return game.WordState.WordToGuess; }
+        }
+
+        public List<Char> AvailableLetters
+        {
+            get { return game.WordState.AvailableLetters.ToList(); }
+        }
+
         public string UserMessage;
 
         // Returns the player who is the winner of this game, if it's over.
@@ -189,6 +209,8 @@ namespace MvcWebRole1.Models
         // Attempts to play a move. Processes the move sent from the client.
         public string PlayMove(Move move)
         {
+            System.Diagnostics.Debug.WriteLine("in GameModel.PlayMove()... wordToFill is: " + game.WordState.AsDisplayString);
+            System.Diagnostics.Debug.WriteLine("in GameModel.PlayMove()... guessed letter is: " + move.GuessedLetter);
             string userMessage = game.ProcessMove(userPlayerId, move);
             return userMessage;
         }

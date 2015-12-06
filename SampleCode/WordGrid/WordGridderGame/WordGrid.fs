@@ -23,36 +23,6 @@ module Util =
     let nullable value =
         new System.Nullable<_>(value)
 
-// Represents the type of a WordGrid tile.
-type Letter = 
-    | Blank = 0
-    | A = 1
-    | B = 2
-    | C = 3
-    | D = 4
-    | E = 5
-    | F = 6
-    | G = 7
-    | H = 8
-    | I = 9
-    | J = 10
-    | K = 11
-    | L = 12
-    | M = 13
-    | N = 14
-    | O = 15
-    | P = 16
-    | Q = 17
-    | R = 18
-    | S = 19
-    | T = 20
-    | U = 21
-    | V = 22
-    | W = 23
-    | X = 24
-    | Y = 25
-    | Z = 26
-
 type GameState =
     | PreGame = 0
     | FirstMove = 1
@@ -230,9 +200,17 @@ type Move(gameId : int, playerId : int, guessedLetter : char) =
 // of played tiles.
 type WordState(wordToGuess : string) =
     let length = wordToGuess.Length
+    let rec remove n lst = 
+        match lst with
+        | h::tl when h = n -> tl
+        | h::tl -> h :: (remove n tl)
+        | []    -> []
 
     // TODO: we need to handle spaces in the words carefully.
-    let mutable usedLetters : char list = [] 
+    let validLetters : char list = [ 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z']
+    let mutable availableLetters : char list = [ 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z']
+    let mutable usedLetters : char list = []
+
     let mutable wordToFill : char [] =
         Array.init (length) (fun i -> if wordToGuess.Chars(i) = ' ' then ' ' else '_')
     let mutable wordComplete = false
@@ -241,10 +219,23 @@ type WordState(wordToGuess : string) =
     member this.Letter(index) =
         wordToFill.[index]
 
+    member this.ValidLetters = validLetters
+    member this.ValidLettersString = 
+        System.String.Concat(Array.ofList(validLetters))
+    
+    member this.AvailableLetters = availableLetters
+    member this.AvailableLettersString = 
+        System.String.Concat(Array.ofList(availableLetters))
+
+    member this.UsedLetters = usedLetters
+    // returns string containing all letters that have been used
+    member this.UsedLettersString = 
+        System.String.Concat(Array.ofList(usedLetters))
+
     // Creates a deep copy of the word state.
     member this.Copy() =
-        System.Diagnostics.Debug.WriteLine( "Executing WordState.Copy()...")
-        System.Diagnostics.Debug.WriteLine( "Word to guess is " +  this.WordToGuess)
+        //System.Diagnostics.Debug.WriteLine( "Executing WordState.Copy()...")
+        //System.Diagnostics.Debug.WriteLine( "Word to guess is " +  this.WordToGuess)
         let newState = WordState(this.WordToGuess)
         for letter in usedLetters do
             ignore(newState.AddLetter(letter))
@@ -260,7 +251,11 @@ type WordState(wordToGuess : string) =
         System.Diagnostics.Debug.WriteLine( "Executing WordState.AddLetter()...")
         System.Diagnostics.Debug.WriteLine( "Guessed letter is " + (letter.ToString()))
         System.Diagnostics.Debug.WriteLine("Length of word to guess is " + wordToGuess.Length.ToString())
+        
         let guessedLetter = letter
+        usedLetters <- guessedLetter :: usedLetters
+        availableLetters <- remove guessedLetter availableLetters
+
         let mutable found = false
         for i = 0 to wordToGuess.Length - 1 do
             // if guessedLetter = letter, put the letter at the same spot in wordToFill
@@ -268,7 +263,6 @@ type WordState(wordToGuess : string) =
             // check this array before looping???
             if (guessedLetter = wordToGuess.Chars(i)) then
                 Array.set wordToFill i guessedLetter
-                usedLetters <- guessedLetter :: usedLetters
                 found <- true
         if (found) then
             this.CheckComplete()
@@ -277,7 +271,7 @@ type WordState(wordToGuess : string) =
 
     
     member this.CheckComplete() =        
-        wordComplete <- (this.AsString = wordToGuess)
+        wordComplete <- (this.AsDatabaseString = wordToGuess)
 
     // Returns the current state of the word to fill
     member this.WordToFill =
@@ -290,36 +284,58 @@ type WordState(wordToGuess : string) =
     member this.WordComplete = 
         wordComplete
 
-    // returns string containing all letters that have been used
-    member this.UsedLetters = 
-        System.String.Concat(Array.ofList(usedLetters))
+
 
     // TODO: we may only need to save the wordToFill wihtout the wordToGuess...
 
     // Convert a text string into a word to fill. Text strings are used in the database to store
     // the word state, so this method is called whenever the game is loaded from the database.
-    static member FromString(wordStateIn:string, wordToGuess:string) = 
+    static member FromString(wordStateIn:string, wordToGuess:string, usedLetters:string) = 
         System.Diagnostics.Debug.WriteLine("Executing WordState.FromString()")
         System.Diagnostics.Debug.WriteLine( "String from database is: " + wordStateIn)
         System.Diagnostics.Debug.WriteLine( "Word to guess is:" + wordToGuess)
+        System.Diagnostics.Debug.WriteLine( "used letters are:" + usedLetters)
 
         let newState = new WordState(wordToGuess)
             
-        for i = 0 to wordStateIn.Length - 1 do
-            ignore(newState.AddLetter(wordStateIn.Chars(i)))
+        for i = 0 to usedLetters.Length - 1 do
+            ignore(newState.AddLetter(usedLetters.Chars(i)))
+
+        System.Diagnostics.Debug.WriteLine("Finished building WordState from string...")
+        System.Diagnostics.Debug.WriteLine("New word state has wordToFill" + newState.AsDisplayString)
         newState
 
     // Convert a word state to a text string in order to save it in the database.
-    member this.AsString =
-        System.Diagnostics.Debug.WriteLine( "Executing WordState.AsString()...")
+    member this.AsDatabaseString =
+        //System.Diagnostics.Debug.WriteLine( "Executing WordState.AsDatabaseString()...")
         let charArray = Array.init (length) (fun index -> '_')
         // copy wordToFill into the array
         for i = 0 to length-1 do
             Array.set charArray i wordToFill.[i]
 
+        for i = 0 to length-1 do
+            if (wordToGuess.Chars(i) = ' ') then
+                Array.set charArray i ' '
+
         // create string out of resulting array
         let outString = System.String(charArray)
-        System.Diagnostics.Debug.WriteLine( "word state as string is: " + outString)
+        //System.Diagnostics.Debug.WriteLine( "word state as db string is: " + outString)
+        outString
+
+        // Convert a word state to a text string in order to save it in the database.
+    member this.AsDisplayString =
+        //System.Diagnostics.Debug.WriteLine( "Executing WordState.AsDisplayString()...")
+        let chars = Array.init (length) (fun i -> '_')
+        // copy wordToFill into the array
+        for i = 0 to length-1 do
+            Array.set chars i wordToFill.[i]
+        for i = 0 to length-1 do
+            if (wordToGuess.Chars(i) = ' ') then
+                Array.set chars i ' '
+
+        // create string out of resulting array
+        let outString = System.String(chars)
+        //System.Diagnostics.Debug.WriteLine( "word state as display string is: " + outString)
         outString
 
 
@@ -328,14 +344,9 @@ type Game( id, name, players : Player[], wordToGuess : string,
             wordState : WordState, state : GameState, hangmanState : int, currentPlayerPosition) =
 
     // Represents the game board with all committed plays.
-    let mutable wordState = new WordState(wordToGuess)
-
-    // Represents the proposed game state including the current play.
-    let mutable newState : WordState = new WordState(wordToGuess)
+    let mutable wordState = wordState
 
     let mutable hangmanState = hangmanState 
-
-    let mutable nextId = 0
 
     // The data context which is used to get at the type provider's types.
     static member DataContext = sqldata.GetDataContext()
@@ -347,7 +358,10 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // For a two-player game, this is 0 or 1. The position is used as the array index
     // in the Players array.
     member val CurrentPlayerPosition = currentPlayerPosition with get, set
-    member val ValidLetters = [| 'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'; 'I'; 'J'; 'K'; 'L'; 'M'; 'N'; 'O'; 'P'; 'Q'; 'R'; 'S'; 'T'; 'U'; 'V'; 'W'; 'X'; 'Y'; 'Z' |]
+    member val AvailableLetters = wordState.AvailableLetters
+    member val UsedLetters = wordState.UsedLetters
+    member val ValidLetters = wordState.ValidLetters
+
     // The name of the current game.
     member val Name = name
 
@@ -355,8 +369,18 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // PreGame, FirstMove, InProgress, GameOver.
     member val State = state with get, set
 
+    // This is the Id of the game, which is also the primary key in the database.
+    member this.GameId = id
+
+    // An array of the players.  CurrentPlayerPosition is used as the index.
+    member this.Players = players
+
+    // the state of the word being filled in
+    member this.WordState = wordState
+
     // This constructor is used to load a game from the database, given the game Id.
     new(gameId) =
+        System.Diagnostics.Debug.WriteLine("creating new Game object from game id...")
         let gameFromDb =
             query {
                 for game in Game.DataContext.Games do
@@ -369,6 +393,12 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     // This constructor is used to load a game from the database given the game as a provided type.
     new(gameFromDb) =
+        System.Diagnostics.Debug.WriteLine("creating new Game object from database...")
+        System.Diagnostics.Debug.WriteLine("word to guess is: " + gameFromDb.WordToGuess)
+        System.Diagnostics.Debug.WriteLine("word to fill is: " + gameFromDb.WordToFill)
+        System.Diagnostics.Debug.WriteLine("hangman state is" + (gameFromDb.HangManState.ToString()))
+        System.Diagnostics.Debug.WriteLine("current player turn is: " + gameFromDb.CurrentPlayerPosition.GetValueOrDefault().ToString())
+
         let dataContext = Game.DataContext;
         let players = query { for player in dataContext.Players do
                                   join gamePlayer in dataContext.GamePlayers on (player.Id = gamePlayer.PlayerId)
@@ -378,11 +408,12 @@ type Game( id, name, players : Player[], wordToGuess : string,
                           |> Seq.toArray
         let currentPlayerPosition = gameFromDb.CurrentPlayerPosition.GetValueOrDefault()
         Game( gameFromDb.Id, gameFromDb.Name, players, gameFromDb.WordToGuess, 
-             WordState.FromString(gameFromDb.WordToFill, gameFromDb.WordToGuess), enum<GameState> gameFromDb.GameState, 
+             WordState.FromString(gameFromDb.WordToFill, gameFromDb.WordToGuess, gameFromDb.GuessedLetters), enum<GameState> gameFromDb.GameState, 
              (int)(gameFromDb.HangManState), currentPlayerPosition)
 
     // This constructor is used to create a brand new game.
     new(players : Player []) =
+        System.Diagnostics.Debug.WriteLine("creating new Game object from list of players...")
         // TODO: move to FsAzureHelper project.
         do CloudStorageAccount.SetConfigurationSettingPublisher(new System.Action<_, _>(fun configName configSetter  ->
                           // Provide the configSetter with the initial value
@@ -418,7 +449,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
         // TODO: need to generate random word here.
         let wordToGuess = WordGenerator.GenerateRandomWord(gameName, generateQueue, resultsQueue)
         let guessedLetters = ""
-        let wordToFill = (new WordState(wordToGuess)).AsString
+        let wordToFill = (new WordState(wordToGuess)).AsDatabaseString
 
         // TODO: THIS PROC NEEDS TO BE REWORKED
         // this proc now takes parameters name, wordToGuess, wordToFill, guessedLetter
@@ -430,15 +461,6 @@ type Game( id, name, players : Player[], wordToGuess : string,
         Array.iteri (fun index (player:Player) ->
             Game.DataContext.SpAddPlayerToGame(Util.nullable gameId, Util.nullable player.PlayerId, Util.nullable index) |> ignore) players
         Game(gameId)
-
-    // This is the Id of the game, which is also the primary key in the database.
-    member this.GameId = id
-
-    // An array of the players.  CurrentPlayerPosition is used as the index.
-    member this.Players = players
-
-    // the state of the word being filled in
-    member this.WordState = wordState
 
     // Gets the type provider type for one of the players from the database.
     member this.GetPlayerById(playerId) =
@@ -462,7 +484,7 @@ type Game( id, name, players : Player[], wordToGuess : string,
     member this.CheckMove(move : Move) = 
         let contains x = Seq.exists ((=) x)
         let letter = move.GuessedLetter
-        if (not (contains letter wordState.UsedLetters) && (contains letter this.ValidLetters)) then
+        if ((contains letter this.AvailableLetters) && (contains letter this.ValidLetters)) then
             true
         else
             false
@@ -471,8 +493,9 @@ type Game( id, name, players : Player[], wordToGuess : string,
     // Process a move submitted by a player.
     // TODO: rewrite this to handle hangman stuff
     member this.ProcessMove(playerId : int, move : Move) =
-        newState <- wordState.Copy()
-        let found = newState.AddLetter(move)
+        System.Diagnostics.Debug.WriteLine("In Game.ProcessMove()... wordToFill is: " + wordState.AsDatabaseString);
+        //newState <- wordState.Copy()
+        //let found = newState.AddLetter(move)
         // TODO: check if letter has already been tried -- this determines legality of move
         let isLegalMove = this.CheckMove(move)
         if (not isLegalMove) then
@@ -481,7 +504,10 @@ type Game( id, name, players : Player[], wordToGuess : string,
         else            
             // if letter in word, cool --> game might end if that finishes the word
             // if letter NOT in word, we must add a body part to hangman and possibly end the game
-            wordState <- newState.Copy()
+            //wordState <- newState.Copy()
+            let found = wordState.AddLetter(move)
+            System.Diagnostics.Debug.WriteLine("In Game.ProcessMove()... adding letter: " + move.GuessedLetter.ToString());
+            System.Diagnostics.Debug.WriteLine("In Game.ProcessMove()... wordToFill is now: " + wordState.AsDatabaseString);
             this.State <- GameState.InProgress
             // current player should already be known!
             let player = players.[this.CurrentPlayerPosition]
@@ -517,17 +543,28 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
         // TODO: this proc now takes parameters gameId, playerId, moveNumber, 
         // guessedLetter, guessedLetters, wordToFill, hangmanState, gameState, and currentPlayerPosition.
+
+        this.CurrentPlayerPosition <- (this.CurrentPlayerPosition + 1) % players.Length
+        System.Diagnostics.Debug.WriteLine("In Game.SwapTurn()... wordToFill is: " + wordState.AsDatabaseString);
+        System.Diagnostics.Debug.WriteLine("saving updated game to db... ")
+        System.Diagnostics.Debug.WriteLine("guessed letter is " + move.GuessedLetter.ToString())
+        System.Diagnostics.Debug.WriteLine("used letters are " + wordState.UsedLettersString)
+        System.Diagnostics.Debug.WriteLine("word state db string is: " + wordState.AsDatabaseString)
+        System.Diagnostics.Debug.WriteLine("hangman state is:" + hangmanState.ToString())
+        System.Diagnostics.Debug.WriteLine("player position is:" + this.CurrentPlayerPosition.ToString())
+
+
         Game.DataContext.SpUpdateGame(Util.nullable this.GameId,
                                     Util.nullable player.PlayerId,
                                     Util.nullable this.MoveCount,
                                     move.GuessedLetter.ToString(),
-                                    wordState.UsedLetters,
-                                    wordState.AsString,
+                                    wordState.UsedLettersString,
+                                    wordState.AsDatabaseString,
                                     Util.nullable hangmanState,
                                     Util.nullable (int this.State),
-                                    Util.nullable ((this.CurrentPlayerPosition + 1) % players.Length))
+                                    Util.nullable (this.CurrentPlayerPosition))
         |> ignore
-        this.CurrentPlayerPosition <- (this.CurrentPlayerPosition + 1) % players.Length
+        
 
     member this.EndGame(move : Move, player : Player) = 
         // Update the database tables: Games, PlayerState, Plays
@@ -538,8 +575,8 @@ type Game( id, name, players : Player[], wordToGuess : string,
                                     Util.nullable player.PlayerId,
                                     Util.nullable this.MoveCount,
                                     move.GuessedLetter.ToString(),
-                                    wordState.UsedLetters,
-                                    wordState.AsString,
+                                    wordState.UsedLettersString,
+                                    wordState.AsDatabaseString,
                                     Util.nullable hangmanState,
                                     Util.nullable (int this.State),
                                     Util.nullable (-1))
@@ -552,9 +589,9 @@ type Game( id, name, players : Player[], wordToGuess : string,
        
         Game.DataContext.Connection.Open()
         // TODO: rewrite this query
-        let commandText = System.String.Format("UPDATE Games SET Games.Name = '{0}', Games.GameState = {1}, Games.WordToGuess = {2}, Games.WordToFill = {3}, Games.HangManState = {4}, Games.GuessedLetters = {5}" +
+        let commandText = System.String.Format("UPDATE Games SET Games.Name = '{0}', Games.GameState = {1}, Games.WordToGuess = '{2}', Games.WordToFill = '{3}', Games.HangManState = {4}, Games.GuessedLetters = '{5}'" +
                                                 "WHERE Games.Id = {6}",
-                                                this.Name, int GameState.FirstMove, wordToGuess, this.WordState.AsString, hangmanState, this.WordState.UsedLetters, this.GameId)
+                                                this.Name, int GameState.FirstMove, wordToGuess, this.WordState.AsDatabaseString, hangmanState, this.WordState.UsedLetters, this.GameId)
         Game.DataContext.DataContext.ExecuteCommand(commandText) |> ignore;
         for player in this.Players do
             let commandText = System.String.Format("INSERT INTO PlayerState VALUES('{0}', '{1}')",

@@ -41,6 +41,7 @@ namespace MvcWebRole1
             var move = new WordGridGame.Move(gameId, playerId, guessedLetter);
             var user = GetCurrentUserProfile();
             gameModel = GameModel.GetByID(move.GameID, user);
+            System.Diagnostics.Debug.WriteLine("In BoardController.Move(): game model word state is:" + gameModel.WordToFillDisplay);
             string userMessage = gameModel.PlayMove(move);
             
             return RedirectToAction("Play", new { gameId, userMessage });
