@@ -89,8 +89,39 @@
 
 @section info
 {
-    <p>Word to fill: @Model.WordToFillDisplay </p>
-    <p>Word to guess: @Model.WordToGuess </p>
+    @{
+        string HangManState;
+        switch (Model.HangManState)
+        {
+            case 0:
+                HangManState = "EMPTY";
+                break;
+            case 1:
+                HangManState = "HEAD";
+                break;
+            case 2:
+                HangManState = "BODY";
+                break;
+            case 3:
+                HangManState = "LEFT ARM";
+                break;
+            case 4:
+                HangManState = "RIGHT ARM";
+                break;
+            case 5:
+                HangManState = "LEFT LEG";
+                break;
+            case 6:
+            default:
+                HangManState = "DEAD";
+                break;
+        }
+        <p>Hangman State: @HangManState</p>
+        <p>Word to fill: @Model.WordToFillDisplay </p>
+        <p>Word to guess: @Model.WordToGuess </p>
+        <p>Current turn: @Model.CurrentPlayerTurn</p>
+    }
+
 
     @{ // This extra level of brace shouldn't be necessary but there seems to be some sort of bug.
        <table>
@@ -148,7 +179,6 @@
                    <td class="rackCell">
                        <div class="rackSpace" id="rackSpace" ondrop="dropItem(event)" ondragover="allowDrop(event)">
                            @{
-                               int count = 0;
                                foreach (Char letter in Model.AvailableLetters)
                                {
                                    if (letter != null)
@@ -157,8 +187,6 @@
                                        string letterImageFilename = "/images/tiles/Tile_" + letter + ".png";
 
                                        <img class="rackTile" id="@letterID" src="@letterImageFilename" alt="@letter" onclick="selectLetter('@letterID')" width="24" />
-
-                                       count++;
                                    }
                                }
                            }

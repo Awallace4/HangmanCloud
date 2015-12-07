@@ -19,7 +19,6 @@ type sqldata = SqlDataConnection<ConnectionStringName = "DefaultConnection", Con
 
 // Utility functions.
 module Util =
-
     let nullable value =
         new System.Nullable<_>(value)
 
@@ -377,6 +376,8 @@ type Game( id, name, players : Player[], wordToGuess : string,
 
     // the state of the word being filled in
     member this.WordState = wordState
+
+    member this.HangManState : int = hangmanState
 
     // This constructor is used to load a game from the database, given the game Id.
     new(gameId) =

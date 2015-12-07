@@ -47,13 +47,25 @@ function selectLetter(id) {
         oldSelected[0].className = 'rackTile'
     }
 
-    var newSelected = document.getElementById(id)
-    console.log("new selected id is: " + newSelected.id)
-    newSelected.className = 'rackTileSelected'
-    newSelected.style.outline = '2px solid blue'
+    var myTurnElement = document.getElementById("myturn");
+    var submitButton = document.getElementById("submitPlay");
+    var myTurn = myTurnElement != null;
 
-    var submitButton = document.getElementById('submitPlay')
-    submitButton.disabled = false;
+
+    if (myTurn)
+    {
+        var newSelected = document.getElementById(id)
+        console.log("new selected id is: " + newSelected.id)
+        newSelected.className = 'rackTileSelected'
+        newSelected.style.outline = '2px solid blue'
+
+        myTurnElement.innerText = "YOUR TURN!"; // this is redundant, but whatever.
+        submitButton.disabled = false;
+    } else
+    {
+        myTurnElement.innerText = "NOT YOUR TURN!";
+        submitButton.disabled = true;
+    }
 }
 
 function OnKey(e) {
@@ -151,7 +163,7 @@ function OnKey(e) {
             myTurnElement.innerText = "YOUR TURN!";
             submitButton.disabled = false;
         } else {
-            myTurnElement.innerText = "";
+            myTurnElement.innerText = "NOT YOUR TURN!";
             submitButton.disabled = true;
         }
 

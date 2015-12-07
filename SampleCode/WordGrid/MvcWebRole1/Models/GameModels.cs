@@ -53,7 +53,7 @@ namespace MvcWebRole1.Models
 
 
 
-    // Represents a player's Hangman session, including the game they are currently
+    // Represents a player's Hangman session, including the game they are ly
     // playing, and all its elements.
     public class GameModel
     {
@@ -179,6 +179,16 @@ namespace MvcWebRole1.Models
         public List<Char> AvailableLetters
         {
             get { return game.WordState.AvailableLetters.ToList(); }
+        }
+
+        public int HangManState
+        {
+            get { return game.HangManState; }
+        }
+
+        public int CurrentPlayerTurn
+        {
+            get { return game.CurrentPlayerPosition; }
         }
 
         public string UserMessage;
