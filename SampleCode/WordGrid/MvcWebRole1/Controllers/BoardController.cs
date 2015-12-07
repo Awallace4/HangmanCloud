@@ -9,7 +9,7 @@ namespace MvcWebRole1
 {
     // This class accepts incoming HTTP requests and
     // determines the appropriate action, which could
-    // be a Word Grid move (see Move and Play), swapping tiles (see Swap)
+    // be a hangman move (see Move and Play)
     // or creating a new game (see NewGame and CreateGame).
     [ValidateInput(true)]
     public class BoardController : Controller
@@ -17,7 +17,7 @@ namespace MvcWebRole1
         GameModel gameModel;
 
         // GET: Board/Play
-        // Handles the main game board display at the start of a turn.
+        // Handles the main game display at the start of a turn.
         public ActionResult Play(int gameID, string userMessage)
         {
             var currentUser = GetCurrentUserProfile();
@@ -64,7 +64,6 @@ namespace MvcWebRole1
             
             gameModel = GameModel.NewGame(new UserProfile[] { userProfile, opponentUserProfile });
                 
-            
             string userMessage = "";
             return RedirectToAction("Play", new { gameModel.GameID, userMessage });
         }

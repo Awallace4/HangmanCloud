@@ -4,15 +4,12 @@
 @using WordGridGame
 
 @{
-    ViewBag.Title = "Board";
+    ViewBag.Title = "Hangman";
     Layout = "~/Views/Shared/_Layout.cshtml";
     Layout = "~/Views/Shared/_LayoutBoard.cshtml";
 }
 <script src="@Url.Content("~/Scripts/HangManScript.js")" type="text/javascript"></script>
 
-<!-- The game board consists of a series of rows and a series of cells in the rows.
-    Each cell is either occupied or unoccupied and if occupied contains a tile.
-     -->
 <style>
     h2 {
         font-family: 'Bookman Old Style';
@@ -71,6 +68,7 @@
     }
 
 </style>
+
 <!-- <form name="wordgrid" action="~/Board/Move" method="post" onsubmit="return capturePlayDetails(event)">-->
 @using (@Html.BeginForm("Move", null, FormMethod.Post, new { name = "hangman", onsubmit = "return capturePlayDetails(event)" }))
 {
@@ -82,13 +80,15 @@
     <input name="gameID" id="gameID" type="hidden" value="@Model.GameID" />
     <input name="playerID" id="playerID" type="hidden" value="@Model.UserPlayerID" />
     <input name="guessedLetter" id="guessedLetter" type="hidden" value="" />
-
+    <!-- TODO: GET RID OF THIS NEXT ELEMENT SO PEOPLE CAN'T CHEAT-->
+    <input name="wordToGuess" id="wordToGuess" type="hidden" value="@Model.WordToGuess"/>
     <input type="submit" id="submitPlay" value="Submit Play" disabled="disabled" />
 }
 
 @section info
 {
     @{
+        // TODO: once we have pics of hangman states, insert them here instead of text.
         string HangManState;
         switch (Model.HangManState)
         {
@@ -117,9 +117,6 @@
         }
         <p>Hangman State: @HangManState</p>
         <p>Word to fill: @Model.WordToFillDisplay </p>
-        <p>Word to guess: @Model.WordToGuess </p>
-        <p>Current turn: @Model.CurrentPlayerTurn</p>
-        <p>Move number: @Model.MoveCount</p>
     }
 
 
@@ -138,7 +135,7 @@
                    <tr>
                        <td><p> @player.Name </p></td>
                     <td>
-                       <p>id: @player.PlayerId
+                       <p>(player #@player.PlayerId)
                        <!-- An asterisk for the player whose turn it is. -->
                        @if (isMyTurn)
                        { 
@@ -181,13 +178,10 @@
                            @{
                                foreach (Char letter in Model.AvailableLetters)
                                {
-                                   if (letter != null)
-                                   {
-                                       string letterID = "letter" + letter.ToString();
-                                       string letterImageFilename = "/images/tiles/Tile_" + letter + ".png";
+                                    string letterID = "letter" + letter.ToString();
+                                    string letterImageFilename = "/images/tiles/Tile_" + letter + "_Blank.png";
 
-                                       <img class="rackTile" id="@letterID" src="@letterImageFilename" alt="@letter" onclick="selectLetter('@letterID')" width="24" />
-                                   }
+                                    <img class="rackTile" id="@letterID" src="@letterImageFilename" alt="@letter" onclick="selectLetter('@letterID')" width="24" />
                                }
                            }
 
@@ -195,19 +189,13 @@
                    </td>
                </tr>
            </table>
-
        </table>
     
     }
 }
 
-@section rack
-    {
-
-    }
 
 
  
     
-
 

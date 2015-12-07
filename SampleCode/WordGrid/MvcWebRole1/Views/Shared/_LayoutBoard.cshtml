@@ -1,27 +1,57 @@
 ﻿<!DOCTYPE html>
 
-<!-- Shows the WordGrid game board, tile rack, and stats.-->
+<!-- Shows the hangman game.-->
 
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    @Styles.Render("~/Content/css")
 </head>
 <body>
+    <header>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p class="site-title">@Html.ActionLink("Hangman 1.0", "Index", "Home")</p>
+            </div>
+            <div class="float-right">
+                <section id="login">
+                    @Html.Partial("_LoginPartial")
+                </section>
+                <nav>
+                    <ul id="menu">
+                        <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                        <li>@Html.ActionLink("New Game", "NewGame", "Board")</li>
+                        <li>@Html.ActionLink("About", "About", "Home")</li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
     <!-- <div id="status"></div> -->
-    <table>
-        <tr>
-            <td>
-                <div id ="board">
-                    @RenderBody()
-                </div>
-            </td>
-            <td>
-                <div id="gameList">@RenderSection("info")</div>
-            </td>
-        </tr>
-    </table>
-    <div id="rack">@RenderSection("rack")</div>
+    <section class="content-wrapper main-content clear-fix">
+        <table>
+            <tr>
+                <td>
+                    <div id="board">
+                        @RenderBody()
+                    </div>
+                </td>
+                <td>
+                    <div id="gameList">@RenderSection("info")</div>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <footer>
+        <div class="content-wrapper">
+            <div class="float-left">
+                <p>&copy; @DateTime.Now.Year - CS 491</p>
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>
