@@ -3,7 +3,6 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
-open System.Linq
 open System.Net
 open System.Threading
 open Microsoft.WindowsAzure

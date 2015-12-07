@@ -8,7 +8,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     Layout = "~/Views/Shared/_LayoutBoard.cshtml";
 }
-<script src="@Url.Content("~/Scripts/WordGridScript.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/HangManScript.js")" type="text/javascript"></script>
 
 <!-- The game board consists of a series of rows and a series of cells in the rows.
     Each cell is either occupied or unoccupied and if occupied contains a tile.
@@ -72,7 +72,7 @@
 
 </style>
 <!-- <form name="wordgrid" action="~/Board/Move" method="post" onsubmit="return capturePlayDetails(event)">-->
-@using (@Html.BeginForm("Move", null, FormMethod.Post, new { name = "wordgrid", onsubmit = "return capturePlayDetails(event)" }))
+@using (@Html.BeginForm("Move", null, FormMethod.Post, new { name = "hangman", onsubmit = "return capturePlayDetails(event)" }))
 {
     @Html.AntiForgeryToken()
     <h2>Hangman</h2>
@@ -83,7 +83,6 @@
     <input name="playerID" id="playerID" type="hidden" value="@Model.UserPlayerID" />
     <input name="guessedLetter" id="guessedLetter" type="hidden" value="" />
 
-    
     <input type="submit" id="submitPlay" value="Submit Play" disabled="disabled" />
 }
 
@@ -120,6 +119,7 @@
         <p>Word to fill: @Model.WordToFillDisplay </p>
         <p>Word to guess: @Model.WordToGuess </p>
         <p>Current turn: @Model.CurrentPlayerTurn</p>
+        <p>Move number: @Model.MoveCount</p>
     }
 
 
@@ -138,7 +138,7 @@
                    <tr>
                        <td><p> @player.Name </p></td>
                     <td>
-                       <p>@player.PlayerId
+                       <p>id: @player.PlayerId
                        <!-- An asterisk for the player whose turn it is. -->
                        @if (isMyTurn)
                        { 

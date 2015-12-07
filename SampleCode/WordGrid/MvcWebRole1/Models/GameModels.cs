@@ -191,6 +191,11 @@ namespace MvcWebRole1.Models
             get { return game.CurrentPlayerPosition; }
         }
 
+        public int MoveCount
+        {
+            get { return game.MoveCount; }
+        }
+
         public string UserMessage;
 
         // Returns the player who is the winner of this game, if it's over.

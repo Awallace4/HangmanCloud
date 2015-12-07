@@ -14,7 +14,7 @@ namespace MvcWebRole1.Controllers
         public ActionResult Index()
         {
             PlayerModel playerModel = null;
-            ViewBag.Message = "A hangman developed in C#/F#/Javascript/MVC and hosted on Windows Azure.";
+            ViewBag.Message = "A hangman game hosted on Windows Azure.";
             playerModel = GetCurrentUserAsPlayer();
             return View(playerModel); 
         }
@@ -28,7 +28,7 @@ namespace MvcWebRole1.Controllers
 
         public ActionResult Contact()
         {
-            ViewBag.Message = "github.com/Awallace4/HangmanCloud .";
+            ViewBag.Message = "github.com/Awallace4/HangmanCloud.";
 
             return View();
         }
