@@ -32,7 +32,6 @@ function selectLetter(id) {
         submitButton.disabled = false;
     } else
     {
-        myTurnElement.innerText = "NOT YOUR TURN!";
         submitButton.disabled = true;
     }
 }

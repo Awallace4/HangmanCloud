@@ -46,7 +46,7 @@ type WorkerRole() =
     let queueClient = storageAccount.CreateCloudQueueClient()
     
     // An in-memory representation of the word list that's used in this game.
-    let numWords = 51
+    let numWords = 50
     let dictionary =
             blobContainer.CreateIfNotExist()
             let blob = blobContainer.GetBlobReference(DictionaryInfo.dictionaryFilename).ToBlockBlob

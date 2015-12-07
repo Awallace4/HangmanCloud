@@ -88,7 +88,6 @@
 @section info
 {
     @{
-        // TODO: once we have pics of hangman states, insert them here instead of text.
         string HangManState;
         switch (Model.HangManState)
         {
@@ -115,7 +114,11 @@
                 HangManState = "DEAD";
                 break;
         }
-        <p>Hangman State: @HangManState</p>
+        // TODO: once we have pics of hangman states, insert them here instead of text.
+        string hangmanImageFilename = "/images/Figure_" + Model.HangManState + ".png";
+        <img class="hangman" id="hangmanImg" src="@hangmanImageFilename" alt="@HangManState" width="256" />
+
+        <!--<p>Hangman State: HangManState</p>-->
         <p>Word to fill: @Model.WordToFillDisplay </p>
     }
 
